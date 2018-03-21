@@ -1,5 +1,8 @@
 // // const MongoClient = require('mongodb').MongoClient
-const {MongoClient, ObjectID} = require('mongodb');
+const {
+  MongoClient,
+  ObjectID
+} = require('mongodb');
 //strange but LEARN IT!!!!
 
 
@@ -9,7 +12,7 @@ const {MongoClient, ObjectID} = require('mongodb');
 
 
 MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
-  if(err) {
+  if (err) {
     return console.log('Error to connect with database');
   }
   console.log('You connect fine');
@@ -24,16 +27,17 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
   //   console.log(JSON.stringify(result.ops, undefined, 2));
   // });
 
-//   db.collection('Users').insertOne({
-//     name: 'Dimitrios',
-//     age: 30,
-//     location: 'Athens'
-//   }, (err, result) => {
-//     if(err) {
-//       return console.log('Unable to connect to users', err);
-//     }
-//     console.log(result.ops[0]._id.getTimestamp());
-//   });
-//
+  db.collection('Users').insertOne({
+    _id: '1312',
+    name: 'Dimitrios',
+    age: 30,
+    location: 'Athens'
+  }, (err, result) => {
+    if (err) {
+      return console.log('Unable to connect to users', err);
+    }
+    // console.log(result.ops[0]._id.getTimestamp());
+  });
+
   db.close();
 });

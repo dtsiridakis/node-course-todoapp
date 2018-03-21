@@ -1,10 +1,14 @@
 // const MongoClient = require('mongodb').MongoClient
-const {MongoClient, ObjectID} = require('mongodb');
+// const ObjectID = require('mongodb').ObjectID
+const {
+  MongoClient,
+  ObjectID
+} = require('mongodb');
 //strange but LEARN IT!!!!
 
 
 MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
-  if(err) {
+  if (err) {
     return console.log('Error to connect with database');
   }
   console.log('You connect fine');
@@ -31,10 +35,11 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
   // });
 
   db.collection('Users').findOneAndDelete({
-    _id: new ObjectID("5aa95b3f3c54282f8f296e8a")
-    }).then((result) => {
+    _id: new ObjectID("5aad578d0e98c57bf6708500")
+  }).then((result) => {
     console.log(JSON.stringify(result, undefined, 2));
   });
+
 
   // db.close();
 });
