@@ -24,11 +24,17 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
   //   console.log('Unable to feth the number of count', err)
   // });
 
-  db.collection('Users').find({name: "Dimitrios"}).toArray().then((users) => {
-    console.log('Users');
-    console.log(JSON.stringify(users, undefined, 2));
+  // db.collection('Users').find({name: "Dimitrios"}).toArray().then((users) => {
+  //   console.log('Users');
+  //   console.log(JSON.stringify(users, undefined, 2));
+  // }, (err) => {
+  //   console.log('Unable to fetch Dimitrios data');
+  // });
+
+  db.collection('Users').find({name: 'Mara'}).toArray().then((result) => {
+    console.log(result);
   }, (err) => {
-    console.log('Unable to fetch Dimitrios data');
+    console.log('Unable to Connect');
   });
 
   // db.close();

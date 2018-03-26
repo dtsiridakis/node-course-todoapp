@@ -27,17 +27,27 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
   //   console.log(JSON.stringify(result.ops, undefined, 2));
   // });
 
-  db.collection('Users').insertOne({
-    _id: '1312',
-    name: 'Dimitrios',
-    age: 30,
-    location: 'Athens'
-  }, (err, result) => {
-    if (err) {
-      return console.log('Unable to connect to users', err);
-    }
-    // console.log(result.ops[0]._id.getTimestamp());
-  });
+  // db.collection('Users').insertOne({
+  //   _id: '1312',
+  //   name: 'Dimitrios',
+  //   age: 30,
+  //   location: 'Athens'
+  // }, (err, result) => {
+  //   if (err) {
+  //     return console.log('Unable to connect to users', err);
+  //   }
+  //   // console.log(result.ops[0]._id.getTimestamp());
+  // });
 
-  db.close();
+  db.collection('Users').insertOne({
+    name: 'Mara',
+    age: 29,
+    location: 'Kallithea'
+  }, (err, result) => {
+    if(err) {
+      return conslole.log('Unable to connect to Users');
+    }
+    console.log(result.ops);
+  });
+    db.close();
 });
