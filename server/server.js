@@ -1,8 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
-
-
 const mongoose = require('./db/mongoose');
 const Todo = require('./models/todo');
 const User = require('./models/user');
@@ -12,20 +10,23 @@ app.use(bodyParser.json());
 
 
 app.post('/todos', (req, res) => {
-  let postmanTodo = new Todo({
+  let someTodo = new Todo({
     text: req.body.text
   });
 
-  postmanTodo.save().then((doc) => {
-    res.send(doc)
+  someTodo.save().then((todo) => {
+    res.send(todo);
   }, (e) => {
     res.status(400).send(e);
   });
 });
 
+
 app.get('/todos', (req, res) => {
-  Todo.find().then((todos) => { //It's best to send objects instead of arrays back!!!!
-    res.send({todos});
+  Todo.find().then((todos) => {
+    res.send({
+      dbfiles: todos
+    }); //It's best to send objects instead of arrays back!!!!
   }, (err) => {
     res.status(400).send(e);
   });
