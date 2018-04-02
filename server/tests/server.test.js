@@ -8,7 +8,7 @@ var seedTodos = [{text: 'text 1'}, {text: 'text 2'}];
 
 beforeEach((done) => { // This function allow us to run some code before EACH TEST CASE!!!!!
   Todo.remove({}).then(() => {
-    return Todo.insertMany(seedTodos);
+    return Todo.insertMany(seedTodos); //Add some fake data to test GET Route
   }).then(() => {
     done(); // Only if we call done() proceeds to the test cases();
   }).catch((e) => {
