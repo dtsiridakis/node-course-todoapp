@@ -4,13 +4,21 @@ const request = require('supertest');
 const app = require('./../server');
 const Todo = require('./../models/todo');
 
-var seedTodos = [{text: 'text 1'}, {text: 'text 2'}];
+const {ObjectID} = require('mongodb')
 
-beforeEach((done) => { // This function allow us to run some code before EACH TEST CASE!!!!!
+var seedTodos = [{
+  text: 'text 1',
+  _id: new ObjectID()
+}, {
+  text: 'text 2',
+  _id: new ObjectID()
+}];
+
+beforeEach((done) => { // This function allow us to run some code before EACH TEST CASE
   Todo.remove({}).then(() => {
     return Todo.insertMany(seedTodos); //Add some fake data to test GET Route
   }).then(() => {
-    done(); // Only if we call done() proceeds to the test cases();
+    done(); // Only if we call done() proceeds to the test cases
   }).catch((e) => {
     done(e);
   });
@@ -18,10 +26,12 @@ beforeEach((done) => { // This function allow us to run some code before EACH TE
 
 describe('POST / todos', () => {
   it('should create a new todo', (done) => {
-    var text = 'some text to test'
+    var text = 'something to test'
     request(app)
       .post('/todos')
-      .send({text}) // With this method we sending data along with request
+      .send({
+        text: text
+      }) // With this method we sending data along with request
       .expect(200)
       .expect((res) => {
         expect(res.body.text).toBe(text)
@@ -68,5 +78,31 @@ describe('GET /todos', () => {
         expect(res.body.dbfiles.length).toBe(2)
       })
       .end(done);
+  });
+});
+
+describe('Get /todos/:id', () => {
+  it('Should send the correct data', (done) => {
+    request(app)
+      .get(`/todos/${seedTodos[0]._id}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.text).toBe(seedTodos[0].text)
+      })
+      .end(done);
+  });
+
+  it('Should return 404 if todo not found on db', (done) => {
+    request(app)
+      .get(`/todos/${new ObjectID()}`)
+      .expect(404)
+      .end(done)
+  });
+
+  it('Should return 404 for strange object ids', (done) => {
+    request(app)
+      .get('/todos/123')
+      .expect(404)
+      .end(done)
   });
 });

@@ -43,7 +43,7 @@ app.get('/todos/:id', (req, res) => { // The :id its our variable to store the d
     if(!todo) {
       return res.status(404).send(); // We check if is on database
     }
-    res.send(todo);
+    res.send({todo});
   }).catch((e) => {
     return res.status(400).send();
   });
