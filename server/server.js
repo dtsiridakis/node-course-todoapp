@@ -8,6 +8,7 @@ const User = require('./models/user');
 const {ObjectID} = require('mongodb');
 
 const app = express();
+const port = process.env.PORT || 3000; //This line give access to listen port on HEROKU or Local 3000 if HEROKU not working
 app.use(bodyParser.json());
 
 
@@ -50,8 +51,8 @@ app.get('/todos/:id', (req, res) => { // The :id its our variable to store the d
 });
 
 
-app.listen(3000, () => {
-  console.log('Started on port 3000');
+app.listen(port, () => {
+  console.log(`Started on port ${port}`);
 });
 
 module.exports = app;

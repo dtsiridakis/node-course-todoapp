@@ -18,7 +18,7 @@ beforeEach((done) => { // This function allow us to run some code before EACH TE
   Todo.remove({}).then(() => {
     return Todo.insertMany(seedTodos); //Add some fake data to test GET Route
   }).then(() => {
-    done(); // Only if we call done() proceeds to the test cases 
+    done(); // Only if we call done() proceeds to the test cases
   }).catch((e) => {
     done(e);
   });
@@ -81,7 +81,7 @@ describe('GET /todos', () => {
   });
 });
 
-describe('Get /todos/:id', () => {
+describe('GET /todos/:id', () => {
   it('Should send the correct data', (done) => {
     request(app)
       .get(`/todos/${seedTodos[0]._id}`)
