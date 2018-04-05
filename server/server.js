@@ -1,9 +1,10 @@
-const express = require('express');
+const _          = require('lodash');
+const express    = require('express');
 const bodyParser = require('body-parser');
 
-const mongoose = require('./db/mongoose');
-const Todo = require('./models/todo');
-const User = require('./models/user');
+const mongoose   = require('./db/mongoose');
+const Todo       = require('./models/todo');
+const User       = require('./models/user');
 
 const {ObjectID} = require('mongodb');
 
@@ -23,7 +24,6 @@ app.post('/todos', (req, res) => {
     res.status(400).send(e);
   });
 });
-
 
 app.get('/todos', (req, res) => {
   Todo.find().then((todos) => {
@@ -63,6 +63,31 @@ app.delete('/todos/:id', (req, res) => {
   }, (e) => {
     res.status(400).send();
   })
+});
+
+app.patch('/todos/:id', (req, res) => {
+  var id = req.params.id;
+  var body = _.pick(req.body, ['text', 'completed']) // This method from lodash ejects from req.body
+  if(!ObjectID.isValid(id)) {                      // the properties that we want and saves it to body variable
+    return res.status(404).send();
+  }
+
+  if(_.isBoolean(body.completed) && body.completed) { // We check if the body.completed is boolean with lodash method
+    body.completedAt = new Date().getTime();    // and if its also true!! we create a completedAt with miliseconds from 1970
+  } else {
+    body.completed = false; //Else the completed is false and completedAt is null
+    body.completedAt = null;
+  }
+
+  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+    if(!todo) {
+      return res.status(404).send();
+    }
+
+    res.send({todo});
+  }).catch((e) => {
+    res.status(404).send();
+  });
 });
 
 
