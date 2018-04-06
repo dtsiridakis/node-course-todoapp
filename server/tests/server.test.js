@@ -6,17 +6,19 @@ const Todo = require('./../models/todo');
 
 const {ObjectID} = require('mongodb')
 
-var seedTodos = [{
+var todos = [{
   text: 'text 1',
   _id: new ObjectID()
 }, {
   text: 'text 2',
-  _id: new ObjectID()
+  _id: new ObjectID(),
+  completed: true,
+  completedAt: 33
 }];
 
 beforeEach((done) => { // This function allow us to run some code before EACH TEST CASE
   Todo.remove({}).then(() => {
-    return Todo.insertMany(seedTodos); //Add some fake data to test GET Route
+    return Todo.insertMany(todos); //Add some fake data to test GET Route
   }).then(() => {
     done(); // Only if we call done() proceeds to the test cases
   }).catch((e) => {
@@ -84,10 +86,10 @@ describe('GET /todos', () => {
 describe('GET /todos/:id', () => {
   it('Should send the correct data', (done) => {
     request(app)
-      .get(`/todos/${seedTodos[0]._id}`)
+      .get(`/todos/${todos[0]._id}`)
       .expect(200)
       .expect((res) => {
-        expect(res.body.todo.text).toBe(seedTodos[0].text)
+        expect(res.body.todo.text).toBe(todos[0].text)
       })
       .end(done);
   });
@@ -110,10 +112,10 @@ describe('GET /todos/:id', () => {
 describe('DELETE /todo/:id', () => {
   it('Should delete the todo', (done) => {
     request(app)
-      .delete(`/todos/${seedTodos[1]._id}`)
+      .delete(`/todos/${todos[1]._id}`)
       .expect(200)
       .expect((res) => {
-        expect(res.body.todo.text).toBe(seedTodos[1].text);
+        expect(res.body.todo.text).toBe(todos[1].text);
       })
       .end((err, res) => {
         if(err) {
@@ -122,7 +124,7 @@ describe('DELETE /todo/:id', () => {
 
         Todo.find().then((res) => {
           expect(res.length).toBe(1);
-          return Todo.findById(seedTodos[1]._id)
+          return Todo.findById(todos[1]._id)
         }).then((res) => {
           expect(res).toNotExist();
           done();
@@ -140,6 +142,78 @@ describe('DELETE /todo/:id', () => {
   it('Should return 404 for strange object ids', (done) => {
     request(app)
       .delete(`/todos/123abc`)
+      .expect(404)
+      .end(done);
+  });
+});
+
+describe('PATCH /todo/:id', () => {
+  it('Should update the todo', (done) => {
+    var id = todos[0]._id;
+    var update = {text: 'Updated', completed: true}
+
+    request(app)
+      .patch(`/todos/${id}`)
+      .send(update)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.text).toBe(update.text);
+        expect(res.body.todo.completed).toBe(true);
+        expect(res.body.todo.completedAt).toBeA('number');
+      })
+      .end((err, res) => {
+        if(err) {
+          done(err);
+        }
+
+        Todo.findById(id).then((res) => {
+          expect(res.text).toBe(update.text);
+          expect(res.completed).toBe(true);
+          expect(res.completedAt).toBeA('number');
+          done()
+        }).catch((e) => {
+          done(e);
+        });
+      });
+  });
+
+  it('Should clear completedAt when todo is not completed', (done) => {
+    var id = todos[1]._id;
+    var update = {text: 'Updated again', completed: false}
+    request(app)
+      .patch(`/todos/${id}`)
+      .send(update)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.text).toBe(update.text);
+        expect(res.body.todo.completed).toBe(false);
+        expect(res.body.todo.completedAt).toNotExist();
+      })
+      .end((err, res) => {
+        if(err) {
+          done(err);
+        }
+
+        Todo.findById(id).then((res) => {
+          expect(res.text).toBe(update.text);
+          expect(res.completed).toBe(false);
+          expect(res.completedAt).toNotExist();
+          done()
+        }).catch((e) => {
+          done(e);
+        });
+      });
+  });
+
+  it('Should return 404 if id not found on db' ,(done) => {
+    request(app)
+      .patch(`/todos/${new ObjectID()}`)
+      .expect(404)
+      .end(done);
+  });
+  it('Should return 404 for strange object ids' ,(done) => {
+    request(app)
+      .patch(`/todos/123abc`)
       .expect(404)
       .end(done);
   });
