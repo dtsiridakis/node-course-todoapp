@@ -1,3 +1,5 @@
+require('./config/config');
+
 const _          = require('lodash');
 const express    = require('express');
 const bodyParser = require('body-parser');
@@ -9,7 +11,7 @@ const User       = require('./models/user');
 const {ObjectID} = require('mongodb');
 
 const app = express();
-const port = process.env.PORT || 3000; //This line give access to listen port on HEROKU or Local 3000 if HEROKU not working
+const port = process.env.PORT //This line give access to listen port on HEROKU or Local 3000 if HEROKU not working
 app.use(bodyParser.json());
 
 
