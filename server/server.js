@@ -11,7 +11,7 @@ const User       = require('./models/user');
 const {ObjectID} = require('mongodb');
 
 const app = express();
-const port = process.env.PORT //This line give access to listen port on HEROKU or Local 3000 if HEROKU not working
+const port = process.env.PORT; //This line give access to listen port on HEROKU or Local 3000 if HEROKU not working
 app.use(bodyParser.json());
 
 
@@ -75,7 +75,7 @@ app.patch('/todos/:id', (req, res) => {
   }
 
   if(_.isBoolean(body.completed) && body.completed) { // We check if the body.completed is boolean with lodash method
-    body.completedAt = new Date().getTime();    // and if its also true!! we create a completedAt with miliseconds from 1970
+    body.completedAt = new Date();    // and if its also true!! we create a completedAt with miliseconds from 1970
   } else {
     body.completed = false; //Else the completed is false and completedAt is null
     body.completedAt = null;
@@ -89,6 +89,21 @@ app.patch('/todos/:id', (req, res) => {
     res.send({todo});
   }).catch((e) => {
     res.status(404).send();
+  });
+});
+
+//+++++++++++ USERS ROUTES +++++++++++//
+
+app.post('/users', (req, res) => {
+  var body = _.pick(req.body, ['email', 'password']);
+  var user = new User(body);
+
+  user.save().then(() => {
+    return user.generateAuthToken() // Remember we create this method on user model inside the UserSchema.model
+  }).then((token) => {
+    res.header('x-auth', token).send(user); //The headers is key value pairs and we must send the token as http responce
+  }).catch((e) => {// x-auth is a custom header for specific purposes because JWT scheme.
+    res.status(400).send(e);
   });
 });
 
