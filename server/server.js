@@ -1,12 +1,13 @@
 require('./config/config');
 
-const _          = require('lodash');
-const express    = require('express');
-const bodyParser = require('body-parser');
+const _            = require('lodash');
+const express      = require('express');
+const bodyParser   = require('body-parser');
 
-const mongoose   = require('./db/mongoose');
-const Todo       = require('./models/todo');
-const User       = require('./models/user');
+const mongoose     = require('./db/mongoose');
+const Todo         = require('./models/todo');
+const User         = require('./models/user');
+const {authenticate} = require('./middleware/authenticate');
 
 const {ObjectID} = require('mongodb');
 
@@ -97,14 +98,18 @@ app.patch('/todos/:id', (req, res) => {
 app.post('/users', (req, res) => {
   var body = _.pick(req.body, ['email', 'password']);
   var user = new User(body);
-
+  user.generateAuthToken(); // Remember we create this method on user model inside the UserSchema.model
+  var token = user.tokens[0].token;
   user.save().then(() => {
-    return user.generateAuthToken() // Remember we create this method on user model inside the UserSchema.model
-  }).then((token) => {
     res.header('x-auth', token).send(user); //The headers is key value pairs and we must send the token as http responce
   }).catch((e) => {// x-auth is a custom header for specific purposes because JWT scheme.
     res.status(400).send(e);
   });
+});
+
+
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user);
 });
 
 

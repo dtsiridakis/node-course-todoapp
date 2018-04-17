@@ -39,25 +39,48 @@ var UserSchema = new mongoose.Schema({
       }
     }]
   });
-  //To add methods on our schema we pass it like This
-  UserSchema.methods.toJSON = function () {
-    var user = this;
-    var userObject = user.toObject() // this method takes the mongoose variable and converting it to regualr object
 
-    return _.pick(userObject, ['_id', 'email']);
-  };
+// To add instance methods on our schema we pass it like This into the .methods object
 
-  UserSchema.methods.generateAuthToken = function () { //we use regular function to use keyword this
-    var user = this;
-    var access = 'auth';
-    var token = jwt.sign({_id: user._id, access}, 'abc123').toString();
+UserSchema.methods.toJSON = function () {
+  var user = this;
+  // console.log(user);
+  // var userObject = user.toObject() // this method takes the mongoose variable and converting it to regular object
+  // console.log(userObject);
+  return _.pick(user, ['_id', 'email']);
+};
 
-    user.tokens = user.tokens.concat([{access, token}]);
+UserSchema.methods.generateAuthToken = function () { //we use regular function to use keyword this
+  var user = this;
+  var access = 'auth';
+  var userID = user._id;
+  var token = jwt.sign({userID, access}, 'abc123');
+  user.tokens = user.tokens.concat([{access, token}]);
+  // return user.save().then(() => {
+  //   return token;
+};
 
-    return user.save().then(() => {
-      return token;
-    });
-  };
+// To add model methods on our schema we pass it like This into the .statics object
+
+UserSchema.statics.findByToken = function (token) {
+  var User = this;
+  var decoded;
+
+  try {
+    decoded = jwt.verify(token, 'abc123');
+  } catch (e) {
+    // return new Promise((resolve, reject) => {
+    //   reject();
+    // });
+    return Promise.reject(); // Less code to reject promises
+  }
+  
+  return User.findOne({
+    _id: decoded.userID,
+    'tokens.access': 'auth',// **Importand** when we queriying nested info we must wrapped in quotes!!!!!
+    'tokens.token': token
+  });
+};
 
 
 var User = mongoose.model('User', UserSchema );
