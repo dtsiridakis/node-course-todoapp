@@ -1,7 +1,8 @@
-const mongoose = require('mongoose');
+const mongoose  = require('mongoose');
 const validator = require('validator');
-const jwt = require('jsonwebtoken');
-const _          = require('lodash');
+const jwt       = require('jsonwebtoken');
+const _         = require('lodash');
+const bcrypt    = require('bcryptjs');
 
 // {
 //   email: 'test@test.gr',
@@ -11,6 +12,7 @@ const _          = require('lodash');
 //     token: 'fdfsgghe23133!@#$#rdfs' //Actuall token value like pass and this gonna be back and forth with http req. for users to edit their todo's
 //   }]
 // }
+
 var UserSchema = new mongoose.Schema({
     email: {
       type: String,
@@ -40,7 +42,7 @@ var UserSchema = new mongoose.Schema({
     }]
   });
 
-// To add instance methods on our schema we pass it like This into the .methods object
+//========= To add instance methods on our schema we pass it like This into the .methods object
 
 UserSchema.methods.toJSON = function () {
   var user = this;
@@ -60,7 +62,7 @@ UserSchema.methods.generateAuthToken = function () { //we use regular function t
   //   return token;
 };
 
-// To add model methods on our schema we pass it like This into the .statics object
+//========== To add model methods on our schema we pass it like This into the .statics object
 
 UserSchema.statics.findByToken = function (token) {
   var User = this;
@@ -74,13 +76,30 @@ UserSchema.statics.findByToken = function (token) {
     // });
     return Promise.reject(); // Less code to reject promises
   }
-  
+
   return User.findOne({
     _id: decoded.userID,
     'tokens.access': 'auth',// **Importand** when we queriying nested info we must wrapped in quotes!!!!!
-    'tokens.token': token
+    'tokens.token': token  // on Mongoose and Mongodb
   });
 };
+
+//========== To add a mongoose middleware before a certain function starts or ends like here!!
+//========== Also remember that this middware executes before each save()!!
+UserSchema.pre('save', function(next) { // Don't forget NEXT is middleware!!
+  var user = this;
+
+  if(user.isModified('password')) {
+    bcrypt.genSalt(13, (err, salt) => {
+      bcrypt.hash(user.password, salt, (err, hash) => {
+        user.password = hash;
+        next();
+      });
+    });
+  } else {
+    next();
+  }
+});
 
 
 var User = mongoose.model('User', UserSchema );
