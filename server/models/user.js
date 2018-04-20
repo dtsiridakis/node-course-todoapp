@@ -46,6 +46,7 @@ var UserSchema = new mongoose.Schema({
 
 UserSchema.methods.toJSON = function () {
   var user = this;
+
   // console.log(user);
   // var userObject = user.toObject() // this method takes the mongoose variable and converting it to regular object
   // console.log(userObject);
@@ -55,9 +56,8 @@ UserSchema.methods.toJSON = function () {
 UserSchema.methods.generateAuthToken = function () { //we use regular function to use keyword this
   var user = this;
   var access = 'auth';
-  var userID = user._id;
-  var token = jwt.sign({userID, access}, 'abc123');
-  user.tokens = user.tokens.concat([{access, token}]);
+  var token = jwt.sign({_id: user._id, access}, 'abc123');
+  user.tokens = [{access, token}];
   // return user.save().then(() => {
   //   return token;
 };
@@ -66,6 +66,7 @@ UserSchema.methods.generateAuthToken = function () { //we use regular function t
 
 UserSchema.statics.findByToken = function (token) {
   var User = this;
+
   var decoded;
 
   try {
@@ -78,19 +79,22 @@ UserSchema.statics.findByToken = function (token) {
   }
 
   return User.findOne({
-    _id: decoded.userID,
+    _id: decoded._id,
     'tokens.access': 'auth',// **Importand** when we queriying nested info we must wrapped in quotes!!!!!
     'tokens.token': token  // on Mongoose and Mongodb
   });
 };
 
-//========== To add a mongoose middleware before a certain function starts or ends like here!!
+//========== To add a mongoose middleware before a certain function start or ends, like here!!
 //========== Also remember that this middware executes before each save()!!
 UserSchema.pre('save', function(next) { // Don't forget NEXT is middleware!!
   var user = this;
 
+// ** IMPORTANT note if the user is saved normally as hashed on db and another time changes
+// only his email.. the middleware runs again because of .save() function and then the hashed
+// pass hashed again!!! to prevent this we run .isModified()!!!
   if(user.isModified('password')) {
-    bcrypt.genSalt(13, (err, salt) => {
+    bcrypt.genSalt(1, (err, salt) => {
       bcrypt.hash(user.password, salt, (err, hash) => {
         user.password = hash;
         next();
@@ -100,7 +104,6 @@ UserSchema.pre('save', function(next) { // Don't forget NEXT is middleware!!
     next();
   }
 });
-
 
 var User = mongoose.model('User', UserSchema );
 

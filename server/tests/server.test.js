@@ -3,28 +3,14 @@ const request = require('supertest');
 
 const app = require('./../server');
 const Todo = require('./../models/todo');
+const User = require('./../models/user');
 
 const {ObjectID} = require('mongodb')
+const {todos, populateTodos, users, populateUsers} = require('./seed/seed');
 
-var todos = [{
-  text: 'text 1',
-  _id: new ObjectID()
-}, {
-  text: 'text 2',
-  _id: new ObjectID(),
-  completed: true,
-  completedAt: 33
-}];
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
-beforeEach((done) => { // This function allow us to run some code before EACH TEST CASE
-  Todo.remove({}).then(() => {
-    return Todo.insertMany(todos); //Add some fake data to test GET Route
-  }).then(() => {
-    done(); // Only if we call done() proceeds to the test cases
-  }).catch((e) => {
-    done(e);
-  });
-});
 
 describe('POST / todos', () => {
   it('should create a new todo', (done) => {
@@ -159,7 +145,7 @@ describe('PATCH /todo/:id', () => {
       .expect((res) => {
         expect(res.body.todo.text).toBe(update.text);
         expect(res.body.todo.completed).toBe(true);
-        expect(res.body.todo.completedAt).toBeA('number');
+        expect(res.body.todo.completedAt).toBeA('string');
       })
       .end((err, res) => {
         if(err) {
@@ -169,7 +155,7 @@ describe('PATCH /todo/:id', () => {
         Todo.findById(id).then((res) => {
           expect(res.text).toBe(update.text);
           expect(res.completed).toBe(true);
-          expect(res.completedAt).toBeA('number');
+          expect(res.completedAt).toBeA('string');
           done()
         }).catch((e) => {
           done(e);
@@ -213,8 +199,89 @@ describe('PATCH /todo/:id', () => {
   });
   it('Should return 404 for strange object ids' ,(done) => {
     request(app)
-      .patch(`/todos/123abc`)
+      .patch('/todos/123abc')
       .expect(404)
       .end(done);
+  });
+});
+
+describe('GET /users/me', () => {
+  it('Should return with the right token the user', (done) => {
+    request(app)
+      .get('/users/me')
+      .set('x-auth', users[0].tokens[0].token)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body._id).toBe(users[0]._id.toHexString());
+        expect(res.body.email).toBe(users[0].email);
+      })
+      .end(done);
+  });
+
+  it('Should return empty without the right token', (done) => {
+    request(app)
+      .get('/users/me')
+      .expect(401)
+      .expect((res) => {
+        expect(res.body).toEqual({});
+      })
+      .end(done);
+  });
+});
+
+describe('POST /users', () => {
+  it('Should create a user', (done) => {
+    var email = 'tsiridakis@yahoo.gr';
+    var password = '123kkk@';
+
+    request(app)
+      .post('/users')
+      .send({email, password})
+      .expect(200)
+      .expect((res) => {
+        expect(res.headers['x-auth']).toExist()
+        expect(res.body._id).toExist()
+        expect(res.body.email).toBe(email)
+      })
+      .end((err) => {
+        if (err) {
+          done(err);
+        }
+
+        User.findOne({email}).then((user) => {
+          expect(user).toExist();
+          expect(user.password).toNotBe(password);
+          done();
+        });
+      });
+  });
+
+  it('Should send validation errors for valid data', (done) => {
+    var email = 'tsiri.gr';
+    var password = '12£';
+      request(app)
+       .post('/users')
+       .send({email})
+       .expect(400)
+       .end((err) => {
+        if (err) {
+          done(err);
+        }
+
+        User.findOne({email}).then((user) => {
+          expect(user).toNotExist();
+          done();
+        });
+       });
+  });
+
+  it('Should not save already email user', (done) => {
+    var email = 'mara@example.com';
+    var password = '123456£';
+      request(app)
+       .post('/users')
+       .send({email, password})
+       .expect(400)
+       .end(done);
   });
 });
