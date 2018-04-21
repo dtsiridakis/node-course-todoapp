@@ -42,7 +42,7 @@ var UserSchema = new mongoose.Schema({
     }]
   });
 
-//========= To add instance methods on our schema we pass it like This into the .methods object
+//========= To add INSTANCE methods on our schema we pass it like This into the .methods object
 
 UserSchema.methods.toJSON = function () {
   var user = this;
@@ -62,11 +62,10 @@ UserSchema.methods.generateAuthToken = function () { //we use regular function t
   //   return token;
 };
 
-//========== To add model methods on our schema we pass it like This into the .statics object
+//========== To add MODEL methods on our schema we pass it like This into the .statics object
 
 UserSchema.statics.findByToken = function (token) {
   var User = this;
-
   var decoded;
 
   try {
@@ -85,6 +84,25 @@ UserSchema.statics.findByToken = function (token) {
   });
 };
 
+UserSchema.statics.findByCredentials = function (email, password) {
+  var User = this;
+
+  return User.findOne({email}).then((user) => {
+    if(!user) {
+      return Promise.reject();
+    }
+
+    return new Promise ((resolve, reject) => {
+      bcrypt.compare(password, user.password, (err, res) => {
+        if(res) {
+          resolve(user);
+        }
+        reject();
+      });
+    });
+  });
+};
+
 //========== To add a mongoose middleware before a certain function start or ends, like here!!
 //========== Also remember that this middware executes before each save()!!
 UserSchema.pre('save', function(next) { // Don't forget NEXT is middleware!!
@@ -94,7 +112,7 @@ UserSchema.pre('save', function(next) { // Don't forget NEXT is middleware!!
 // only his email.. the middleware runs again because of .save() function and then the hashed
 // pass hashed again!!! to prevent this we run .isModified()!!!
   if(user.isModified('password')) {
-    bcrypt.genSalt(1, (err, salt) => {
+    bcrypt.genSalt(10, (err, salt) => {
       bcrypt.hash(user.password, salt, (err, hash) => {
         user.password = hash;
         next();

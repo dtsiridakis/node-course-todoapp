@@ -239,8 +239,8 @@ describe('POST /users', () => {
       .send({email, password})
       .expect(200)
       .expect((res) => {
-        expect(res.headers['x-auth']).toExist()
-        expect(res.body._id).toExist()
+        expect(res.headers['x-auth']).toExist() // we select with headers['x-auth']
+        expect(res.body._id).toExist()       // because this headers.x-auth is not valid!
         expect(res.body.email).toBe(email)
       })
       .end((err) => {
@@ -276,7 +276,7 @@ describe('POST /users', () => {
   });
 
   it('Should not save already email user', (done) => {
-    var email = 'mara@example.com';
+    var email = users[1].email;
     var password = '123456£';
       request(app)
        .post('/users')
