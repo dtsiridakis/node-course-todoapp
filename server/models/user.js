@@ -58,8 +58,9 @@ UserSchema.methods.generateAuthToken = function () { //we use regular function t
   var access = 'auth';
   var token = jwt.sign({_id: user._id, access}, 'abc123');
   user.tokens = [{access, token}];
-  // return user.save().then(() => {
-  //   return token;
+  return user.save().then(() => {
+    return token;
+  });
 };
 
 //========== To add MODEL methods on our schema we pass it like This into the .statics object
@@ -112,7 +113,7 @@ UserSchema.pre('save', function(next) { // Don't forget NEXT is middleware!!
 // only his email.. the middleware runs again because of .save() function and then the hashed
 // pass hashed again!!! to prevent this we run .isModified()!!!
   if(user.isModified('password')) {
-    bcrypt.genSalt(10, (err, salt) => {
+    bcrypt.genSalt(1, (err, salt) => {
       bcrypt.hash(user.password, salt, (err, hash) => {
         user.password = hash;
         next();

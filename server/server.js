@@ -100,10 +100,11 @@ app.patch('/todos/:id', (req, res) => {
 app.post('/users', (req, res) => {
   var body = _.pick(req.body, ['email', 'password']);
   var user = new User(body);
-  user.generateAuthToken(); // Remember we create this method on user model inside the UserSchema.model
-  var token = user.tokens[0].token;
+  
   user.save().then(() => {
-    res.header('x-auth', token).send(user); //The headers is key value pairs and we must send the token as http responce
+    return user.generateAuthToken();
+  }).then((token) => {
+    res.header('x-auth', token).send(user);
   }).catch((e) => {// x-auth is a custom header for specific purposes because JWT scheme.
     res.status(400).send(e);
   });
@@ -118,9 +119,9 @@ app.post('/users/login', (req, res) => {
   var body = _.pick(req.body, ['email', 'password']);
 
   User.findByCredentials(body.email, body.password).then((user) => {
-    user.generateAuthToken();
-    var token = user.tokens[0].token;
-    res.header('x-auth', token).send(user);
+    return user.generateAuthToken().then((token) => {
+      res.header('x-auth', token).send(user);
+    });
   }).catch((e) => {
     res.status(400).send();
   });
