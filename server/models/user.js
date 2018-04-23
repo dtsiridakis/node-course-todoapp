@@ -57,9 +57,20 @@ UserSchema.methods.generateAuthToken = function () { //we use regular function t
   var user = this;
   var access = 'auth';
   var token = jwt.sign({_id: user._id, access}, 'abc123');
+
   user.tokens = [{access, token}];
   return user.save().then(() => {
     return token;
+  });
+};
+
+UserSchema.methods.removeToken = function(token) {
+  var user = this;
+
+  return user.update({ // We use the mongoose update method
+    $pull: {          // With Mongodb operator $pull
+      tokens: {token}// and say to pull from tokens array the property token with value token ES6
+    }
   });
 };
 
