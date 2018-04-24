@@ -4,32 +4,6 @@ const User       = require('./../../models/user');
 const jwt        = require('jsonwebtoken');
 
 
-//=== TODOS SEED DATABASE ===//
-
-
-const todos = [{
-  text: 'text 1',
-  _id: new ObjectID()
-}, {
-  text: 'text 2',
-  _id: new ObjectID(),
-  completed: true,
-  completedAt: 33
-}];
-
-
-
-const populateTodos = (done) => {
-  Todo.remove({}).then(() => {
-    return Todo.insertMany(todos); //Add some fake data to test GET Route
-  }).then(() => {
-    done(); // Only if we call done() proceeds to the test cases
-  }).catch((e) => {
-    done(e);
-  });
-}
-
-
 //=== USERS SEED DATABASE ===//
 
 
@@ -48,6 +22,10 @@ const users = [{
   _id: userTwoId,
   email: 'mara@example.com',
   password: 'useTwoPass',
+  tokens: [{
+    access: 'auth',
+    token: jwt.sign({_id: userTwoId, access: 'auth'}, 'abc123').toString()
+  }]
 }];
 
 
@@ -63,6 +41,34 @@ const populateUsers = (done) => { // We dont use insertMany() because not trigge
     done(e);
   });
 };
+
+//=== TODOS SEED DATABASE ===//
+
+
+const todos = [{
+  text: 'text 1',
+  _id: new ObjectID(),
+  _creator: userOneId
+}, {
+  text: 'text 2',
+  _id: new ObjectID(),
+  _creator: userTwoId,
+  completed: true,
+  completedAt: 33
+}];
+
+
+
+const populateTodos = (done) => {
+  Todo.remove({}).then(() => {
+    return Todo.insertMany(todos); //Add some fake data to test GET Route
+  }).then(() => {
+    done(); // Only if we call done() proceeds to the test cases
+  }).catch((e) => {
+    done(e);
+  });
+}
+
 
 
 module.exports = {todos, populateTodos, users, populateUsers};

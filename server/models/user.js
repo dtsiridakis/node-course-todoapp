@@ -56,7 +56,7 @@ UserSchema.methods.toJSON = function () {
 UserSchema.methods.generateAuthToken = function () { //we use regular function to use keyword this
   var user = this;
   var access = 'auth';
-  var token = jwt.sign({_id: user._id, access}, 'abc123');
+  var token = jwt.sign({_id: user._id.toHexString(), access}, 'abc123').toString();
 
   user.tokens = [{access, token}];
   return user.save().then(() => {

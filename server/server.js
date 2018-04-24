@@ -19,9 +19,10 @@ app.use(bodyParser.json());
 
 //+++++++++++ TODOS ROUTES +++++++++++//
 
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
   let someTodo = new Todo({
-    text: req.body.text
+    text: req.body.text,
+    _creator: req.user._id
   });
 
   someTodo.save().then((todo) => {
@@ -31,8 +32,8 @@ app.post('/todos', (req, res) => {
   });
 });
 
-app.get('/todos', (req, res) => {
-  Todo.find().then((todos) => {
+app.get('/todos', authenticate, (req, res) => {
+  Todo.find({_creator: req.user._id}).then((todos) => {
     res.send({
       dbfiles: todos
     }); //It's best to send objects instead of arrays back!!!!
@@ -41,12 +42,15 @@ app.get('/todos', (req, res) => {
   });
 });
 
-app.get('/todos/:id', (req, res) => { // The :id its our variable to store the data from the url.. can be anything
+app.get('/todos/:id', authenticate, (req, res) => { // The :id its our variable to store the data from the url.. can be anything
   var id = req.params.id;
   if(!ObjectID.isValid(id)) { // We validate the id
     res.status(404).send();
   }
-  Todo.findById(id).then((todo) => {
+  Todo.findOne({
+    _id: id, 
+    _creator: req.user._id
+  }).then((todo) => {
     if(!todo) {
       return res.status(404).send(); // We check if is on database
     }
@@ -56,12 +60,15 @@ app.get('/todos/:id', (req, res) => { // The :id its our variable to store the d
   });
 });
 
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
   var id = req.params.id
   if(!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
-  Todo.findByIdAndRemove(id).then((todo) => {
+  Todo.findOneAndRemove({
+    _id: id,
+    _creator: req.user._id
+     }).then((todo) => {
     if(!todo) {
       return res.status(404).send();
     }
@@ -71,7 +78,7 @@ app.delete('/todos/:id', (req, res) => {
   })
 });
 
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
   var id = req.params.id;
   var body = _.pick(req.body, ['text', 'completed']) // This method from lodash ejects from req.body
   if(!ObjectID.isValid(id)) {                      // the properties that we want and saves it to body variable
@@ -85,7 +92,10 @@ app.patch('/todos/:id', (req, res) => {
     body.completedAt = null;
   }
 
-  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => { // new: true is like returnOriginal but is from mongoose
+  Todo.findOneAndUpdate({
+    _id: id,
+    _creator: req.user._id
+  }, {$set: body}, {new: true}).then((todo) => { // new: true is like returnOriginal but is from mongoose
     if(!todo) {
       return res.status(404).send();
     }
