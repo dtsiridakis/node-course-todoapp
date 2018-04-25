@@ -56,9 +56,9 @@ UserSchema.methods.toJSON = function () {
 UserSchema.methods.generateAuthToken = function () { //we use regular function to use keyword this
   var user = this;
   var access = 'auth';
-  var token = jwt.sign({_id: user._id.toHexString(), access}, 'abc123').toString();
+  var token = jwt.sign({_id: user._id.toHexString(), access}, process.env.JWT_SECRET).toString();
 
-  user.tokens = [{access, token}];
+  user.tokens = user.tokens.concat([{access, token}]);
   return user.save().then(() => {
     return token;
   });
@@ -81,7 +81,7 @@ UserSchema.statics.findByToken = function (token) {
   var decoded;
 
   try {
-    decoded = jwt.verify(token, 'abc123');
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (e) {
     // return new Promise((resolve, reject) => {
     //   reject();
@@ -124,7 +124,7 @@ UserSchema.pre('save', function(next) { // Don't forget NEXT is middleware!!
 // only his email.. the middleware runs again because of .save() function and then the hashed
 // pass hashed again!!! to prevent this we run .isModified()!!!
   if(user.isModified('password')) {
-    bcrypt.genSalt(1, (err, salt) => {
+    bcrypt.genSalt(12, (err, salt) => {
       bcrypt.hash(user.password, salt, (err, hash) => {
         user.password = hash;
         next();
