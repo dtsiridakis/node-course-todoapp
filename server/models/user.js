@@ -1,8 +1,9 @@
-const mongoose  = require('mongoose');
+
 const validator = require('validator');
 const jwt       = require('jsonwebtoken');
 const _         = require('lodash');
 const bcrypt    = require('bcryptjs');
+const mongoose  = require('../db/mongoose');
 
 // {
 //   email: 'test@test.gr',
@@ -124,7 +125,7 @@ UserSchema.pre('save', function(next) { // Don't forget NEXT is middleware!!
 // only his email.. the middleware runs again because of .save() function and then the hashed
 // pass hashed again!!! to prevent this we run .isModified()!!!
   if(user.isModified('password')) {
-    bcrypt.genSalt(12, (err, salt) => {
+    bcrypt.genSalt(1, (err, salt) => {
       bcrypt.hash(user.password, salt, (err, hash) => {
         user.password = hash;
         next();

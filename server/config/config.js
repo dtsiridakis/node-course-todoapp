@@ -1,11 +1,9 @@
 var env = process.env.NODE_ENV || 'development';
-console.log('env *******', env);
+console.log('***Enviroment Variable is: ***', env);
 
 if(env === 'development' || env === 'test') {
 	var config = require('./config.json');
 	var envConfig = config[env];// Only with bracket we can put variables to search
-	
-	console.log(envConfig);
 
 	Object.keys(envConfig).forEach((key) => { // Object.keys is javaScript method and from an object
 		process.env[key] = envConfig[key]; // Returns an Array with the properties
